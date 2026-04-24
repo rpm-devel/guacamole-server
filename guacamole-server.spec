@@ -1,15 +1,14 @@
-%define _version %(echo %{_project} | perl -F: -ane '@F[-1] =~ s/-.+//; print @F[-1]')
-
 Name:		guacamole-server
-Version:	0.9.13
-Release:	4.3%{dist}
+Version:	1.6.0
+Release:	1%{?dist}
 Summary:	Guacamole Server
 
-Group:		Web
-License:	Apache2
-Source0:	%{name}-%{version}-incubating.tar.gz
-Source1:	guacamole-%{version}-incubating.war
-Source2:        guacamole-auth-ldap-%{version}-incubating.tar.gz
+License:	Apache-2.0
+URL:		https://guacamole.apache.org/
+Source0:	https://downloads.apache.org/guacamole/%{version}/source/%{name}-%{version}.tar.gz
+Source1:	https://downloads.apache.org/guacamole/%{version}/binary/guacamole-%{version}.war
+Source2:	https://downloads.apache.org/guacamole/%{version}/binary/guacamole-auth-ldap-%{version}.tar.gz
+
 BuildRequires:  cairo-devel
 BuildRequires:	freerdp-devel
 BuildRequires:  libjpeg-turbo-devel
@@ -25,7 +24,8 @@ BuildRequires:	pulseaudio-libs-devel
 BuildRequires:	uuid-devel
 
 %description
-
+Guacamole is a clientless remote desktop gateway. It supports standard
+protocols like VNC, RDP, and SSH.
 
 %package -n guacamole-client
 Summary:	The guacamole client
@@ -34,6 +34,7 @@ Requires:	tomcat
 Requires:	%{name} = %{version}
 
 %description -n guacamole-client
+The Guacamole web application providing the client-side interface.
 
 %package -n guacamole-auth-ldap
 Summary:	Guacamole LDAP authentication module
@@ -41,20 +42,18 @@ Summary:	Guacamole LDAP authentication module
 Requires:	%{name} = %{version}
 
 %description -n guacamole-auth-ldap
+LDAP authentication extension for Apache Guacamole.
 
 %prep
-%setup -q -T -D -b 2 -n guacamole-auth-ldap-%{version}-incubating
-%setup -qn %{name}-%{version}-incubating 
-
-
+%setup -q -T -D -b 2 -n guacamole-auth-ldap-%{version}
+%setup -qn %{name}-%{version}
 
 %build
 %configure --with-init-dir=%{_initddir}
-make %{?_smp_mflags}
-
+%make_build
 
 %install
-make install DESTDIR=%{buildroot}
+%make_install
 # Client
 %__mkdir_p %{buildroot}%{_sysconfdir}/guacamole
 %__mkdir_p %{buildroot}%{_datadir}/tomcat
@@ -82,14 +81,14 @@ EOF
 </user-mapping>
 EOF
 
-#Auth LDAP
+# Auth LDAP
 %__mkdir_p %{buildroot}%{_datadir}/guacamole/auth-ldap
 %__mkdir_p %{buildroot}%{_sysconfdir}/guacamole/extensions
-cd ../guacamole-auth-ldap-%{version}-incubating
+cd ../guacamole-auth-ldap-%{version}
 
-%__install -m 444 guacamole-auth-ldap-%{version}-incubating.jar %{buildroot}%{_sysconfdir}/guacamole/extensions
-%__rm guacamole-auth-ldap-%{version}-incubating.jar
-%__cp -r * %{buildroot}%{_datadir}/guacamole/auth-ldap/ 
+%__install -m 444 guacamole-auth-ldap-%{version}.jar %{buildroot}%{_sysconfdir}/guacamole/extensions
+%__rm guacamole-auth-ldap-%{version}.jar
+%__cp -r * %{buildroot}%{_datadir}/guacamole/auth-ldap/
 
 %post
 systemctl daemon-reload
@@ -99,32 +98,29 @@ systemctl restart guacd
 systemctl restart tomcat httpd
 
 %files
-%defattr(-,root,root)
 %{_initddir}/*
 %{_includedir}/guacamole/*
 %{_libdir}/freerdp/*
 %{_libdir}/libguac*
 %{_sbindir}/guacd
 %{_bindir}/guacenc
-
 %doc
 %{_mandir}/man1/*
 %{_mandir}/man5/*
 %{_mandir}/man8/*
 
 %files -n guacamole-client
-%defattr(-,tomcat,tomcat)
 %{_var}/lib/tomcat/webapps/*
 %config(noreplace) %{_sysconfdir}/guacamole/guacamole.properties
 %config(noreplace) %{_sysconfdir}/guacamole/user-mapping.xml
 %config(noreplace) %{_datadir}/tomcat/.guacamole
 
 %files -n guacamole-auth-ldap
-%defattr(-,root,root)
 %{_sysconfdir}/guacamole/extensions/*
-
 %doc
 %{_datadir}/guacamole/auth-ldap/
 
-
 %changelog
+* Fri Apr 24 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.6.0-1
+- Update to 1.6.0
+- Modernize spec for AlmaLinux 10
