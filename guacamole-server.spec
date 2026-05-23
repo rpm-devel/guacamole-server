@@ -55,20 +55,20 @@ LDAP authentication extension for Apache Guacamole.
 %install
 %make_install
 # Client
-%__mkdir_p %{buildroot}%{_sysconfdir}/guacamole
-%__mkdir_p %{buildroot}%{_datadir}/tomcat
-%__mkdir_p %{buildroot}%{_var}/lib/tomcat/webapps
-%__ln_s %{_sysconfdir}/guacamole %{buildroot}%{_datadir}/tomcat/.guacamole
-%__install -m 444 %{SOURCE1} %{buildroot}%{_var}/lib/tomcat/webapps/guacamole.war
+%{__install} -d %{buildroot}%{_sysconfdir}/guacamole
+%{__install} -d %{buildroot}%{_datadir}/tomcat
+%{__install} -d %{buildroot}%{_var}/lib/tomcat/webapps
+%{__ln_s} %{_sysconfdir}/guacamole %{buildroot}%{_datadir}/tomcat/.guacamole
+%{__install} -m 444 %{SOURCE1} %{buildroot}%{_var}/lib/tomcat/webapps/guacamole.war
 
-%__cat <<EOF > %{buildroot}%{_sysconfdir}/guacamole/guacamole.properties
+cat <<EOF > %{buildroot}%{_sysconfdir}/guacamole/guacamole.properties
 # Minimal Guacamole Properties file
 api-session-timeout:		14400
 guacd-hostname:			localhost
 guacd-port:			4822
 EOF
 
-%__cat <<EOF> %{buildroot}%{_sysconfdir}/guacamole/user-mapping.xml
+cat <<EOF > %{buildroot}%{_sysconfdir}/guacamole/user-mapping.xml
 <user-mapping>
 <!-- Per-user authentication and config information -->
     <authorize username="test" password="password">
@@ -82,20 +82,31 @@ EOF
 EOF
 
 # Auth LDAP
-%__mkdir_p %{buildroot}%{_datadir}/guacamole/auth-ldap
-%__mkdir_p %{buildroot}%{_sysconfdir}/guacamole/extensions
+%{__install} -d %{buildroot}%{_datadir}/guacamole/auth-ldap
+%{__install} -d %{buildroot}%{_sysconfdir}/guacamole/extensions
 cd ../guacamole-auth-ldap-%{version}
 
-%__install -m 444 guacamole-auth-ldap-%{version}.jar %{buildroot}%{_sysconfdir}/guacamole/extensions
-%__rm guacamole-auth-ldap-%{version}.jar
-%__cp -r * %{buildroot}%{_datadir}/guacamole/auth-ldap/
+%{__install} -m 444 guacamole-auth-ldap-%{version}.jar %{buildroot}%{_sysconfdir}/guacamole/extensions
+%{__rm} guacamole-auth-ldap-%{version}.jar
+%{__cp} -r * %{buildroot}%{_datadir}/guacamole/auth-ldap/
 
 %post
-systemctl daemon-reload
-systemctl restart guacd
+%systemd_post guacd.service
+
+%preun
+%systemd_preun guacd.service
+
+%postun
+%systemd_postun_with_restart guacd.service
 
 %post -n guacamole-client
-systemctl restart tomcat httpd
+%systemd_post tomcat.service
+
+%preun -n guacamole-client
+%systemd_preun tomcat.service
+
+%postun -n guacamole-client
+%systemd_postun_with_restart tomcat.service
 
 %files
 %{_initddir}/*
@@ -121,6 +132,9 @@ systemctl restart tomcat httpd
 %{_datadir}/guacamole/auth-ldap/
 
 %changelog
+* Fri May 22 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.6.0-1
+- Fix spec violations: replace deprecated %__macro forms, use %{buildroot} macros, use systemd scriptlet macros
+
 * Fri Apr 24 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.6.0-1
 - Update to 1.6.0
 - Modernize spec for AlmaLinux 10
