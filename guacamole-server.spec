@@ -5,6 +5,7 @@ Summary:	Guacamole Server
 
 License:	Apache-2.0
 URL:		https://guacamole.apache.org/
+ExclusiveArch:	x86_64 aarch64
 Source0:	https://downloads.apache.org/guacamole/%{version}/source/%{name}-%{version}.tar.gz
 Source1:	https://downloads.apache.org/guacamole/%{version}/binary/guacamole-%{version}.war
 Source2:	https://downloads.apache.org/guacamole/%{version}/binary/guacamole-auth-ldap-%{version}.tar.gz
@@ -22,6 +23,8 @@ BuildRequires:	openssl-devel
 BuildRequires:	pango-devel
 BuildRequires:	pulseaudio-libs-devel
 BuildRequires:	uuid-devel
+BuildRequires:	systemd-rpm-macros
+%{?systemd_requires}
 
 %description
 Guacamole is a clientless remote desktop gateway. It supports standard
@@ -109,6 +112,7 @@ cd ../guacamole-auth-ldap-%{version}
 %systemd_postun_with_restart tomcat.service
 
 %files
+%license LICENSE
 %{_initddir}/*
 %{_includedir}/guacamole/*
 %{_libdir}/freerdp/*
@@ -132,6 +136,10 @@ cd ../guacamole-auth-ldap-%{version}
 %{_datadir}/guacamole/auth-ldap/
 
 %changelog
+* Sat Jul 04 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.6.0-1
+- Source0/1/2: Apache downloads URLs verified (1.6.0 is current, all HTTP 200)
+- Add ExclusiveArch: x86_64 aarch64; systemd-rpm-macros; %%{?systemd_requires}; %%license LICENSE
+
 * Fri May 22 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.6.0-1
 - Fix spec violations: replace deprecated %__macro forms, use %{buildroot} macros, use systemd scriptlet macros
 
