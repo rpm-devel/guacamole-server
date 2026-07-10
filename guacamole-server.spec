@@ -10,16 +10,28 @@ Source0:	https://downloads.apache.org/guacamole/%{version}/source/%{name}-%{vers
 Source1:	https://downloads.apache.org/guacamole/%{version}/binary/guacamole-%{version}.war
 Source2:	https://downloads.apache.org/guacamole/%{version}/binary/guacamole-auth-ldap-%{version}.tar.gz
 
+%if 0%{?suse_version}
+%global freerdp_devel_pkg freerdp2-devel
+%global libjpeg_devel_pkg libjpeg8-devel
+%global libvncserver_devel_pkg LibVNCServer-devel
+%global openssl_devel_pkg libopenssl-devel
+%else
+%global freerdp_devel_pkg freerdp-devel
+%global libjpeg_devel_pkg libjpeg-turbo-devel
+%global libvncserver_devel_pkg libvncserver-devel
+%global openssl_devel_pkg openssl-devel
+%endif
+
 BuildRequires:  cairo-devel
-BuildRequires:	freerdp-devel
-BuildRequires:  libjpeg-turbo-devel
+BuildRequires:	%{freerdp_devel_pkg}
+BuildRequires:  %{libjpeg_devel_pkg}
 BuildRequires:	libogg-devel
 BuildRequires:	libpng-devel
 BuildRequires:	libssh2-devel
-BuildRequires:	libvncserver-devel
+BuildRequires:	%{libvncserver_devel_pkg}
 BuildRequires:	libvorbis-devel
 BuildRequires:	libwebp-devel
-BuildRequires:	openssl-devel
+BuildRequires:	%{openssl_devel_pkg}
 BuildRequires:	pango-devel
 BuildRequires:	pulseaudio-libs-devel
 BuildRequires:	uuid-devel
@@ -32,7 +44,6 @@ protocols like VNC, RDP, and SSH.
 
 %package -n guacamole-client
 Summary:	The guacamole client
-#BuildArch:	noarch
 Requires:	tomcat
 Requires:	%{name} = %{version}
 
@@ -41,7 +52,6 @@ The Guacamole web application providing the client-side interface.
 
 %package -n guacamole-auth-ldap
 Summary:	Guacamole LDAP authentication module
-#BuildArch:	noarch
 Requires:	%{name} = %{version}
 
 %description -n guacamole-auth-ldap
@@ -136,6 +146,18 @@ cd ../guacamole-auth-ldap-%{version}
 %{_datadir}/guacamole/auth-ldap/
 
 %changelog
+* Sat Jul 05 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.6.0-1
+- Add openSUSE/SLES package name guards (verified against openSUSE Tumbleweed
+  repos): freerdp-devel -> freerdp2-devel, libjpeg-turbo-devel -> libjpeg8-devel,
+  libvncserver-devel -> LibVNCServer-devel (case differs, RPM names are
+  case-sensitive), openssl-devel -> libopenssl-devel (org-documented divergence)
+- Remove stray commented #BuildArch: noarch lines from guacamole-client and
+  guacamole-auth-ldap subpackages; ExclusiveArch is already inherited from
+  the top-level package, no per-subpackage declaration needed
+- cairo-devel, libogg-devel, libpng-devel, libssh2-devel, libvorbis-devel,
+  libwebp-devel, pango-devel, pulseaudio-libs-devel, uuid-devel,
+  systemd-rpm-macros verified identical on openSUSE Tumbleweed, left unguarded
+
 * Sat Jul 04 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.6.0-1
 - Source0/1/2: Apache downloads URLs verified (1.6.0 is current, all HTTP 200)
 - Add ExclusiveArch: x86_64 aarch64; systemd-rpm-macros; %%{?systemd_requires}; %%license LICENSE
