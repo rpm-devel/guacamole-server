@@ -155,6 +155,10 @@ build/
 dist/
 out/
 
+# Downloaded upstream sources (fetched by spectool/rpmbuild.sh, never committed)
+guacamole-auth-ldap-*.tar.gz
+guacamole-server-*.tar.gz
+
 # Rust
 target/
 
